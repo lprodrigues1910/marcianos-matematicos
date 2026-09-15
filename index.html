@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Guerra no Sol - Marcianos vs Matemática</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at center, #ffdd55 0%, #ff6600 40%, #220000 100%);
+      color: #fff;
+      text-align: center;
+    }
+    #game {
+      max-width: 500px;
+      margin: 40px auto;
+      padding: 20px;
+      background: rgba(0,0,0,0.4);
+      border-radius: 12px;
+    }
+    .bar {
+      height: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 10px;
+      background: #333;
+    }
+    .bar-inner {
+      height: 100%;
+      background: #4caf50;
+      width: 100%;
+      transition: width 0.3s;
+    }
+    .bar-inner.enemy {
+      background: #e53935;
+    }
+    input[type="number"] {
+      padding: 8px;
+      font-size: 16px;
+      width: 120px;
+      text-align: center;
+    }
+    button {
+      padding: 8px 16px;
+      font-size: 16px;
+      margin-left: 8px;
+      cursor: pointer;
+    }
+    #status {
+      margin-top: 15px;
+      min-height: 24px;
+    }
+    #login {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <h1>Guerra no Sol</h1>
+    <p>Impeça que os marcianos dominem o Sol usando multiplicação e divisão!</p>
+
+    <!-- LOGIN / CONTA (aqui você poderia integrar pagamento de R$ 1,00 por conta) -->
+    <div id="login">
+      <label>Nome da conta: </label>
+      <input type="text" id="accountName" placeholder="Seu nome">
+      <button onclick="startGame()">Entrar</button>
+      <p style="font-size:12px;opacity:0.8;">
+        (Pagamento de R$ 1,00 por conta deve ser feito via sistema externo, ex: Pix/checkout.)
+      </p>
+    </div>
+
+    <div id="battle" style="display:none;">
+      <h2 id="playerLabel"></h2>
+
+      <div>
+        <strong>Sua vida</strong>
+        <div class="bar">
+          <div class="bar-inner" id="playerHpBar"></div>
+        </div>
+      </div>
+
+      <div>
+        <strong>Vida dos marcianos</strong>
+        <div class="bar">
+          <div class="bar-inner enemy" id="enemyHpBar"></div>
+        </div>
+      </div>
+
+      <h3 id="question"></h3>
+      <input type="number" id="answer" placeholder="Resposta">
+      <button onclick="checkAnswer()">Atacar!</button>
+
+      <div id="status"></div>
+      <button onclick="resetGame()">Reiniciar batalha</button>
+    </div>
+  </div>
+
+  <script>
+    let playerHp = 100;
+    let enemyHp = 100;
+    let currentA = 0;
+    let currentB = 0;
+    let currentOp = '*'; // ou '/'
+
+    function startGame() {
+      const name = document.getElementById('accountName').value.trim();
+      if (!name) {
+        alert('Digite o nome da conta.');
+        return;
+      }
+      document.getElementById('playerLabel').textContent = 'Conta: ' + name;
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('battle').style.display = 'block';
+      resetGame();
+    }
+
+    function resetGame() {
+      playerHp = 100;
+      enemyHp = 100;
+      updateBars();
+      document.getElementById('status').textContent = '';
+      newQuestion();
+    }
+
+    function updateBars() {
+      document.getElementById('playerHpBar').style.width = playerHp + '%';
+      document.getElementById('enemyHpBar').style.width = enemyHp + '%';
+    }
+
+    function newQuestion() {
+      // sorteia operação: multiplicação ou divisão
+      currentOp = Math.random() < 0.5 ? '*' : '/';
+
+      if (currentOp === '*') {
+        currentA = Math.floor(Math.random() * 10) + 1;
+        currentB = Math.floor(Math.random() * 10) + 1;
+      } else {
+        // para divisão, garante resultado inteiro
+        currentB = Math.floor(Math.random() * 9) + 1; // 1 a 9
+        const result = Math.floor(Math.random() * 10) + 1; // 1 a 10
+        currentA = currentB * result;
+      }
+
+      const questionText = currentOp === '*'
+        ? `${currentA} × ${currentB} = ?`
+        : `${currentA} ÷ ${currentB} = ?`;
+
+      document.getElementById('question').textContent = questionText;
+      document.getElementById('answer').value = '';
+      document.getElementById('answer').focus();
+    }
+
+    function checkAnswer() {
+      const ans = Number(document.getElementById('answer').value);
+      if (isNaN(ans)) {
+        alert('Digite um número.');
+        return;
+      }
+
+      let correct;
+      if (currentOp === '*') {
+        correct = currentA * currentB;
+      } else {
+        correct = currentA / currentB;
+      }
+
+      if (ans === correct) {
+        enemyHp -= 15;
+        if (enemyHp < 0) enemyHp = 0;
+        document.getElementById('status').textContent =
+          'Acertou! Você queimou os marcianos com o poder do Sol! 🔥';
+      } else {
+        playerHp -= 15;
+        if (playerHp < 0) playerHp = 0;
+        document.getElementById('status').textContent =
+          'Errou! Os marcianos contra-atacaram! 👽';
+      }
+
+      updateBars();
+
+      if (enemyHp <= 0) {
+        document.getElementById('status').textContent =
+          'Vitória! Os marcianos foram derrotados e o Sol está salvo! 🌞';
+      } else if (playerHp <= 0) {
+        document.getElementById('status').textContent =
+          'Derrota... Os marcianos dominaram o Sol. Tente novamente!';
+      } else {
+        newQuestion();
+      }
+    }
+  </script>
+</body>
+</html>
